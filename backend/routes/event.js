@@ -1,10 +1,8 @@
 import express from 'express';
 
-import { calculateDistance } from '../utils/distanceCalculator.js';
-
 const router = express.Router();
 
-// In-memory storage (replace with database in production)
+// In-memory storage
 let events = [
   {
     id: 1,
@@ -27,27 +25,16 @@ let events = [
     currentParticipants: 45,
     category: "Music",
     organizer: "Brooklyn Arts"
-  },
-  {
-    id: 3,
-    title: "Startup Networking",
-    description: "Connect with entrepreneurs and investors",
-    location: "Manhattan, NY",
-    date: "2024-11-20T17:00:00Z",
-    maxParticipants: 80,
-    currentParticipants: 62,
-    category: "Networking",
-    organizer: "NYC Startups"
   }
 ];
 
-let nextId = 4;
+let nextId = 3;
 
 // GET /api/events - List all events with optional filters
 router.get('/', (req, res) => {
   try {
     let filteredEvents = [...events];
-    const { location, search, category, lat, lng, radius } = req.query;
+    const { location, search } = req.query;
 
     // Location filter
     if (location) {
@@ -62,31 +49,6 @@ router.get('/', (req, res) => {
         event.title.toLowerCase().includes(search.toLowerCase()) ||
         event.description.toLowerCase().includes(search.toLowerCase())
       );
-    }
-
-    // Category filter
-    if (category) {
-      filteredEvents = filteredEvents.filter(event =>
-        event.category?.toLowerCase() === category.toLowerCase()
-      );
-    }
-
-    // Distance filter (bonus feature)
-    if (lat && lng && radius) {
-      const userLat = parseFloat(lat);
-      const userLng = parseFloat(lng);
-      const maxDistance = parseFloat(radius);
-
-      filteredEvents = filteredEvents.filter(event => {
-        const eventCoords = getCoordinatesForLocation(event.location);
-        if (!eventCoords) return true; // If no coordinates, include event
-        
-        const distance = calculateDistance(
-          userLat, userLng, 
-          eventCoords.lat, eventCoords.lng
-        );
-        return distance <= maxDistance;
-      });
     }
 
     res.json({
@@ -144,7 +106,7 @@ router.post('/', (req, res) => {
     if (!title || !description || !location || !date || !maxParticipants) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: title, description, location, date, maxParticipants'
+        error: 'Missing required fields'
       });
     }
 
@@ -176,19 +138,4 @@ router.post('/', (req, res) => {
   }
 });
 
-// Helper function to get coordinates for locations
-function getCoordinatesForLocation(location) {
-  const coordinates = {
-    'new york, ny': { lat: 40.7128, lng: -74.0060 },
-    'brooklyn, ny': { lat: 40.6782, lng: -73.9442 },
-    'manhattan, ny': { lat: 40.7831, lng: -73.9712 },
-    'queens, ny': { lat: 40.7282, lng: -73.7949 },
-    'bronx, ny': { lat: 40.8448, lng: -73.8648 }
-  };
-  
-  return coordinates[location.toLowerCase()];
-}
-
-
 export default router;
-
