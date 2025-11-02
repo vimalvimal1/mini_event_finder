@@ -1,5 +1,5 @@
 import express from 'express';
-import eventRoutes from './routes/events.js';
+
 import { calculateDistance } from '../utils/distanceCalculator.js';
 
 const router = express.Router();
@@ -191,3 +191,4 @@ function getCoordinatesForLocation(location) {
 
 
 export default router;
+
